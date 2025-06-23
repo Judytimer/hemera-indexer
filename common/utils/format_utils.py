@@ -269,3 +269,31 @@ def convert_bytes_to_hex(item):
         return item.hex()
     else:
         return item
+
+
+def is_hex_address(address: str) -> bool:
+    """
+    Validates if a string is a valid Ethereum address format.
+    
+    :param address: The address string to validate.
+    :type address: str
+    
+    :return: True if the address is valid, False otherwise.
+    :rtype: bool
+    """
+    if not isinstance(address, str):
+        return False
+    
+    # Check if it starts with 0x and has exactly 40 hex characters after that (total 42 characters)
+    if not address.startswith("0x"):
+        return False
+    
+    if len(address) != 42:
+        return False
+    
+    # Check if all characters after 0x are valid hex characters
+    try:
+        int(address[2:], 16)
+        return True
+    except ValueError:
+        return False

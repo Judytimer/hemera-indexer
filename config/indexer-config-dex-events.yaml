@@ -1,0 +1,75 @@
+chain_id: 8453  # Base mainnet，您可以根据需要修改
+
+# DEX事件抓取配置
+dex_events_job:
+  # 启用的事件类型
+  enabled_events:
+    - swap        # 交易事件
+    - liquidity   # 流动性事件 (Mint/Burn)
+    - pair_created # 交易对创建事件
+  
+  # 可选：指定要监控的池地址（留空表示监控所有）
+  pool_addresses: []
+  
+  # 可选：指定要监控的工厂地址（用于PairCreated事件）
+  factory_addresses:
+    - "0x33128a8fc17869897dce68ed026d694621f6fdfd"  # Uniswap V3 Factory (Base)
+    - "0x0bfbcf9fa4f9c56b0f40a671ad40e0805a091865"  # PancakeSwap V3 Factory (Base)
+    # 添加更多工厂地址...
+
+# 数据库配置
+database:
+  host: localhost
+  port: 5432
+  name: hemera_indexer
+  user: devuser
+  password: hemera123
+
+# 区块链RPC配置
+blockchain:
+  provider_uri: "https://mainnet.base.org"  # Base mainnet RPC
+  # provider_uri: "wss://mainnet.base.org"  # 如果使用WebSocket
+  
+# 索引器配置
+indexer:
+  # 起始区块（可选，默认从最新区块开始）
+  start_block: null
+  
+  # 结束区块（可选，null表示持续运行）
+  end_block: null
+  
+  # 批处理大小
+  batch_size: 100
+  
+  # 最大工作线程数
+  max_workers: 5
+  
+  # 日志级别
+  log_level: INFO
+
+# 导出器配置
+exporters:
+  # 数据库导出器
+  - type: postgresql
+    connection_url: "postgresql://devuser:hemera123@localhost:5432/hemera_indexer"
+  
+  # 可选：控制台导出器（用于调试）
+  # - type: console
+  #   enabled: false
+
+# 作业配置
+jobs:
+  # 交易事件抓取作业
+  - job_type: "indexer.modules.custom.dex_events.dex_swap_job.ExportDexSwapEventJob"
+    enabled: true
+    
+  # 流动性事件抓取作业
+  - job_type: "indexer.modules.custom.dex_events.dex_liquidity_job.ExportDexLiquidityEventJob"
+    enabled: true
+    
+  # 交易对创建事件抓取作业
+  - job_type: "indexer.modules.custom.dex_events.dex_pair_job.ExportDexPairCreatedEventJob"
+    enabled: true
+    factory_addresses:
+      - "0x33128a8fc17869897dce68ed026d694621f6fdfd"
+      - "0x0bfbcf9fa4f9c56b0f40a671ad40e0805a091865" 

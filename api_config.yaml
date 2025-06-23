@@ -1,0 +1,29 @@
+env: development
+chain: monad
+
+db_read_sql_alchemy_database_config:
+  host: localhost
+  port: 5432
+  username: test
+  password: test
+  database: test_hemera
+
+db_write_sql_alchemy_database_config:
+  host: localhost
+  port: 5432
+  username: test
+  password: test
+  database: test_hemera
+
+db_common_sql_alchemy_database_config:
+  host: localhost
+  port: 5432
+  username: test
+  password: test
+  database: test_hemera
+
+cache_config:
+  cache_type: SimpleCache
+
+rpc: "https://monad-testnet-rpc.example.com"
+debug_rpc: "https://monad-testnet-rpc.example.com" 

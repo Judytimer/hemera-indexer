@@ -1,0 +1,1 @@
+# DEX Events Module - Captures Swap, Mint/Burn, and PairCreated events 
