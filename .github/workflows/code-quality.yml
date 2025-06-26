@@ -1,0 +1,149 @@
+name: Code Quality Checks
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  quality-checks:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, "3.10", "3.11"]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+    
+    - name: Configure Poetry
+      run: |
+        poetry config virtualenvs.create false
+    
+    - name: Install dependencies
+      run: |
+        poetry install --with dev
+    
+    - name: Run security checks
+      run: |
+        pip install safety pip-audit
+        safety check --json --output safety-report.json || true
+        pip-audit --desc --format=json --output=pip-audit-report.json || true
+    
+    - name: Run type checking with mypy
+      run: |
+        pip install mypy types-requests types-redis
+        mypy --install-types --non-interactive || true
+        mypy indexer/ common/ api/ cli/ --ignore-missing-imports --show-error-codes
+    
+    - name: Run linting with ruff
+      run: |
+        ruff check indexer/ common/ api/ cli/ --format=github
+    
+    - name: Run code formatting check
+      run: |
+        black --check --diff indexer/ common/ api/ cli/
+    
+    - name: Run import sorting check
+      run: |
+        isort --check-only --diff indexer/ common/ api/ cli/
+    
+    - name: Run tests with coverage
+      run: |
+        pytest --cov=indexer --cov=common --cov=api --cov=cli --cov-report=xml --cov-report=html --cov-fail-under=60
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+    
+    - name: Generate quality report
+      run: |
+        echo "# Code Quality Report" > quality-report.md
+        echo "## Security Checks" >> quality-report.md
+        if [ -f safety-report.json ]; then
+          echo "### Safety Check Results" >> quality-report.md
+          python -c "
+import json
+try:
+    with open('safety-report.json') as f:
+        data = json.load(f)
+    vulnerabilities = data.get('vulnerabilities', [])
+    if vulnerabilities:
+        print(f'❌ Found {len(vulnerabilities)} security vulnerabilities')
+        for vuln in vulnerabilities[:5]:  # Show first 5
+            print(f'- {vuln.get(\"advisory\", \"Unknown\")}')
+    else:
+        print('✅ No security vulnerabilities found')
+except:
+    print('⚠️ Could not parse safety report')
+" >> quality-report.md
+        fi
+        
+        echo "## Type Checking" >> quality-report.md
+        echo "MyPy type checking completed" >> quality-report.md
+        
+        echo "## Code Style" >> quality-report.md
+        echo "Ruff linting and Black formatting checks completed" >> quality-report.md
+    
+    - name: Comment PR with quality report
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          if (fs.existsSync('quality-report.md')) {
+            const report = fs.readFileSync('quality-report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+          }
+
+  dependency-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+    
+    - name: Check for outdated dependencies
+      run: |
+        poetry show --outdated > outdated-deps.txt || true
+        if [ -s outdated-deps.txt ]; then
+          echo "## Outdated Dependencies" > dependency-report.md
+          echo '```' >> dependency-report.md
+          cat outdated-deps.txt >> dependency-report.md
+          echo '```' >> dependency-report.md
+        else
+          echo "✅ All dependencies are up to date" > dependency-report.md
+        fi
+    
+    - name: Upload dependency report
+      uses: actions/upload-artifact@v3
+      with:
+        name: dependency-report
+        path: dependency-report.md

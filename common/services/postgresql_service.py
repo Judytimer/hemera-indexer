@@ -37,12 +37,12 @@ class PostgreSQLService:
     def __init__(
         self,
         jdbc_url: str,
-        min_connections: int = 2,
-        max_connections: int = 10,
-        pool_size: int = 10,
-        max_overflow: int = 10,
-        pool_timeout: int = 30,
-        pool_recycle: int = 1800,  # 30 minutes
+        min_connections: int = 10,
+        max_connections: int = 50,
+        pool_size: int = 50,
+        max_overflow: int = 30,
+        pool_timeout: int = 60,
+        pool_recycle: int = 3600,  # 60 minutes
         application_name: str = "postgresql_service",
         db_version: str = "head",
         script_location: str = "migrations",

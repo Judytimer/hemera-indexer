@@ -1,0 +1,101 @@
+# Ruff configuration file
+# Ruff配置文件
+
+# 同Black的行长度
+line-length = 120
+
+# 针对的Python版本
+target-version = "py38"
+
+# 包含的文件模式
+include = ["*.py", "*.pyi", "**/pyproject.toml"]
+
+# 排除的目录
+exclude = [
+    ".bzr",
+    ".direnv", 
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "migrations",  # 数据库迁移文件
+    ".venv",
+    "dex_events_env",  # 项目特定的虚拟环境
+]
+
+[lint]
+# 启用的规则
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings  
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "UP",   # pyupgrade
+    "SIM",  # flake8-simplify
+    "RUF",  # Ruff-specific rules
+]
+
+# 忽略的规则
+ignore = [
+    "E501",   # line too long, handled by black
+    "B008",   # do not perform function calls in argument defaults
+    "C901",   # too complex (temporarily ignore)
+    "B904",   # raise ... from err
+    "B905",   # zip() without an explicit strict= parameter
+    "UP007",  # Use `X | Y` for type annotations (not compatible with Python 3.8)
+]
+
+# 每个文件允许的自动修复
+fixable = ["A", "B", "C", "D", "E", "F", "I", "SIM", "UP", "RUF"]
+unfixable = []
+
+# 每个目录的特定规则
+[lint.per-file-ignores]
+# 测试文件中允许断言
+"tests/**/*.py" = ["S101", "F401", "F811"]
+# 初始化文件中允许未使用的导入
+"**/__init__.py" = ["F401", "F403"]
+# 配置文件中允许所有导入在顶部
+"**/config.py" = ["E402"]
+# 迁移文件中允许所有规则
+"migrations/**/*.py" = ["F401", "E402", "F403"]
+
+[lint.isort]
+# isort配置
+known-first-party = ["indexer", "common", "api", "cli", "enumeration"]
+known-third-party = ["web3", "flask", "sqlalchemy", "pandas", "numpy"]
+force-single-line = false
+multi-line-output = 3
+include-trailing-comma = true
+force-grid-wrap = 0
+use-parentheses = true
+ensure-newline-before-comments = true
+
+[lint.mccabe]
+# 复杂度限制
+max-complexity = 15  # 暂时设置为15，逐步降低到10
+
+[format]
+# 使用双引号
+quote-style = "double"
+# 缩进样式
+indent-style = "space"
+# 跳过magic trailing comma
+skip-magic-trailing-comma = false
+# 行尾样式
+line-ending = "auto"

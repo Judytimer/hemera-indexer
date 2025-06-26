@@ -1,0 +1,65 @@
+# Hemera Indexer 性能优化配置
+# Performance Optimized Configuration
+
+# 数据库连接池配置
+database:
+  pool_size: 50                    # 连接池大小 (从10提升到50)
+  max_overflow: 30                 # 最大溢出连接 (从10提升到30)
+  pool_timeout: 60                 # 连接超时时间 (从30提升到60秒)
+  pool_recycle: 3600              # 连接回收时间 (从1800提升到3600秒)
+  commit_batch_size: 10000        # 批量提交大小 (从1000提升到10000)
+
+# RPC调用优化配置
+rpc:
+  batch_size: 500                 # RPC批量大小 (大幅提升)
+  max_workers: 20                 # 最大工作线程数
+  timeout: 30                     # 请求超时时间
+  retry_attempts: 3               # 重试次数
+  retry_delay: 1                  # 重试延迟
+  connection_pool_size: 50        # HTTP连接池大小
+  max_connections_per_host: 20    # 每个主机最大连接数
+
+# 并发处理配置
+concurrency:
+  max_workers: 32                 # 最大工作进程数
+  block_batch_size: 200           # 区块批量大小
+  transaction_batch_size: 1000    # 交易批量大小
+  async_processing: true          # 启用异步处理
+
+# 缓存配置
+cache:
+  type: "redis"                   # 缓存类型 (memory/redis)
+  redis_url: "redis://localhost:6379"
+  default_timeout: 300            # 默认缓存时间
+  max_memory_usage: "1GB"         # 最大内存使用
+
+# 内存管理配置
+memory:
+  max_buffer_size: 100000         # 最大缓冲区大小
+  gc_threshold: 50000             # 垃圾回收阈值
+  enable_memory_monitoring: true   # 启用内存监控
+
+# 日志配置
+logging:
+  level: "INFO"
+  enable_performance_logging: true
+  slow_query_threshold: 5.0       # 慢查询阈值（秒）
+  log_rpc_calls: false           # 是否记录RPC调用
+
+# 监控配置
+monitoring:
+  enable_metrics: true
+  metrics_port: 9090
+  enable_health_check: true
+  health_check_interval: 30
+
+# 安全配置
+security:
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 1000
+    burst_limit: 100
+  cors:
+    enabled: true
+    origins: ["*"]
+    methods: ["GET", "POST"]
